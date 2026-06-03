@@ -39,4 +39,4 @@ Authors : Hasan Ahmed Salman ,Ali Kalakech ,Amani Steiti
 - Load data and create mlr3 tasks - Split 80/20 train/test (keeping proportion for each class)
 - 2 First choosen target : Urgent Readmission , Intensive Care Unit Start (Binary Variables)
 - Choice based on how intuitively relevant is the problem
-- First Learner : RandomForest without changing any hyperparameters
+- First Learner : RandomForest with default hyperparameters
