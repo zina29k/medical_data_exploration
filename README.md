@@ -11,7 +11,7 @@
 
 #### Step 2 :
 
-- Chose a few models(linear + regularization or non-linear (torch maybe)) to solve the new problem
+- Choose a few models to solve the new problem (torch?)
 - Evaluate their performances
 
 #### Step 3 :
@@ -28,4 +28,15 @@ data source link : <https://zenodo.org/records/12954673>
 - 248 columns (minus first 2 and last 2) -\> 244 used for prediction
 - 248 485 rows (visits) ≃ 123 646 patients
 
-### Procedure begining
+### Reasearch on RF classifier beforehand
+
+link : <https://journals.mesopotamian.press/index.php/BJML/article/view/417>
+
+Authors : Hasan Ahmed Salman ,Ali Kalakech ,Amani Steiti
+
+### Implementation
+
+- Load data and create mlr3 tasks - Split 80/20 train/test (keeping proportion for each class)
+- 2 First choosen target : Urgent Readmission , Intensive Care Unit Start (Binary Variables)
+- Choice based on how intuitively relevant is the problem
+- First Learner : RandomForest without changing any hyperparameters
