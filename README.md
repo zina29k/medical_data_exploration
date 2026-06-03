@@ -4,7 +4,7 @@
 
 #### Step 1 :
 
-- Change a target to find (find imbalanced axes)
+- Change the target (find imbalanced axes)
 - Binary classification only for now
 - Train RF like in the paper for reference
 - Produce a visual on what feature/sub-groups of feature are relevant or not for the new target
@@ -27,3 +27,5 @@ data source link : <https://zenodo.org/records/12954673>
 
 - 248 columns (minus first 2 and last 2) -\> 244 used for prediction
 - 248 485 rows (visits) ≃ 123 646 patients
+
+### Procedure begining

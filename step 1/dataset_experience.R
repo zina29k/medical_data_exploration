@@ -30,3 +30,30 @@ data_for_pred[, .(
   Pourcentage = round((.N / nrow(data_dt)) * 100, 2)
 ), by = is_icu_start_ho][order(-Pourcentage)]
 
+# Test first model for these 2 problems
+
+library(mlr3)
+
+# Define tasks
+
+task_urg <- TaskClassif$new(
+  id = " Urgent Readmission Problem ",
+  backend = data_for_pred,
+  target = "is_urg_readm"
+)
+
+task_icu <- TaskClassif$new(
+  id = " Intensive Care Unit Problem",
+  backend = data_for_pred,
+  target = "is_icu_start_ho"
+)
+
+#Split train/test
+
+
+#RF model train and predict
+
+model = lrn("classif.randomForest")
+
+
+
