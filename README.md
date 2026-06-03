@@ -4,13 +4,14 @@
 
 #### Step 1 :
 
-- Find a good way to divide the features in sub-group
-- Produce curves to have a visual on what sub-group is relevant or not
-- Find some balanced/imbalanced sub-group to work on and compare
+- Change a target to find (find imbalanced axes)
+- Binary classification only for now
+- Train RF like in the paper for reference
+- Produce a visual on what feature/sub-groups of feature are relevant or not for the new target
 
 #### Step 2 :
 
-- Chose a few models(linear + regularization or non-linear (torch maybe)) to train on each sub-groups
+- Chose a few models(linear + regularization or non-linear (torch maybe)) to solve the new problem
 - Evaluate their performances
 
 #### Step 3 :
