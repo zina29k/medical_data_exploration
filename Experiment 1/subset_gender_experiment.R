@@ -8,6 +8,7 @@ library(data.table)
 data_dt = fread("dataset.csv")
 
 dim(data_dt)
+names(data_dt)
 
 ### Supp columns not used for prediction
 
@@ -27,7 +28,7 @@ if (length(colonnes_texte) > 0) {
 data_for_pred[, oym := as.factor(oym)]
 
 
-# Subset Gender(M,F) proportion
+# Subset Gender(M,F)
 
 #Implemented this function to not repeat 3 times the proportion calculi
 calculate_proportion <- function(data, group_col) {
@@ -108,17 +109,36 @@ bmr <- benchmark(design)
 
 #Evaluation
 
-test_measure <- mlr3::msrs(c('classif.auc', 'classif.ce', 'classif.tpr', 'classif.fpr'))
+test_measure <- mlr3::msrs(c('classif.auc', 'classif.ce', 'classif.tpr', 'classif.fpr','classif.tnr', 'classif.fnr'))
 
-scores <- bmr$score(test_measure_list)
+scores <- bmr$score(test_measure)
 
 tab_avg_score <- scores[, .(
   Mean_AUC = mean(classif.auc),
   Mean_Error = mean(classif.ce),
   Mean_TPR = mean(classif.tpr, na.rm = TRUE), 
-  Mean_FPR = mean(classif.fpr, na.rm = TRUE)
+  Mean_FPR = mean(classif.fpr, na.rm = TRUE),
+  Mean_TNR = mean(classif.tnr, na.rm = TRUE), 
+  Mean_FNR = mean(classif.fnr, na.rm = TRUE)
 ), by = .(task_id, learner_id)]
 
-tab_avg_score<- tab_avg_complet[order(task_id, -Mean_AUC)]
+tab_avg_score<- tab_avg_score[order(task_id, -Mean_AUC)]
 
 print(tab_avg_score)
+
+#Graphic for AUC
+
+library(ggplot2)
+
+tab_auc <- tab_avg_score[, .(task_id, learner_id, Mean_AUC)]
+
+ggplot(tab_auc, aes(x = learner_id, y = Mean_AUC, fill = task_id)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  scale_y_continuous(limits = c(0, 1)) +
+  labs(
+    title = "Performance AUC per Model",
+    x = "Algorithms",
+    y = "Score AUC",
+    fill = "Group"
+  ) +
+  theme_minimal()
