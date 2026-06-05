@@ -1,11 +1,11 @@
 ---
-title: "Medical data experiements"
+title: "Medical data experiments"
 listing:
   contents: posts
   feed: true
   sort: "date desc"
   type: default
-  categories: true
+  categories: false
   sort-ui: false
   filter-ui: false
 page-layout: full

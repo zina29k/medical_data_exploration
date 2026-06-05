@@ -2,22 +2,16 @@ project:
   type: website
 
 website:
-  description: "A blog built with Quarto"
-  site-url: https://your-website-url.example.com # you must change this appropriately for RSS feeds to work properly
-  title: "."
   navbar:
+    left:
+      - icon: house-door-fill 
+        href: index.qmd
     right:
       - about.qmd
       - icon: github
-        href: https://github.com/
-      - icon: bluesky
-        href: https://bsky.app/
+        href: https://github.com/zina29k/medical_data_exploration
+        
 format:
   html:
-    theme:
-      - cosmo
-      - brand
+    theme: cosmo
     css: styles.css
-
-
-
