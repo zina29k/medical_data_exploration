@@ -1,0 +1,32 @@
+on:
+  push:
+    branches: blog
+  pull_request:
+    branches: blog
+
+name: Render and Deploy Quarto Blog
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Setup Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Install packages and render site
+        run: Rscript render.R
+
+      - name: netlify deploy
+        uses: animint/animint-actions/netlify-deploy-comment@main
+        with:
+          netlify_auth_token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          netlify_site_id: ${{ secrets.NETLIFY_SITE_ID }}
+          pat_github_pr: ${{ secrets.PAT_GITHUB_PR }}
+          path: _site
+          netlify_url: medical-data-experiments.netlify.app
