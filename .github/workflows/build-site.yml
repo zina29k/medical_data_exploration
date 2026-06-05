@@ -1,8 +1,8 @@
 on:
   push:
-    branches: blog
+    branches: main
   pull_request:
-    branches: blog
+    branches: main
 
 name: Render and Deploy Quarto Blog
 
