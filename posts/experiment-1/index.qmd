@@ -5,6 +5,8 @@ categories: [code, analysis]
 image: "img1.png"
 ---
 
+![](img1.png)
+
 This first experiment show how well our models perform on Gender subsets.
 
 First, We evaluate the baseline performance of each model on each gender dataset independently.
