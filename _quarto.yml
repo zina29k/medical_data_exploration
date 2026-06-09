@@ -5,6 +5,10 @@ website:
   title: "Medical data experiments"
   navbar:
     title: false
+    left:
+      - icon: house
+        href: index.qmd
+        text: ""
     right:
       - about.qmd
       - icon: github

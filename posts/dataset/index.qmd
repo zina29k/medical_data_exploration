@@ -1,6 +1,19 @@
 ---
 title: "Dataset Presentation"
-date: "2026-06-05"
-categories: [news]
 ---
-This section present the dataset we use in both of our experience
+
+This post introduces the dataset we used in our experiments to predict the one-year mortality risk of hospital patients.
+
+### Data Origin and Credits
+
+This dataset is a publicly available synthetic dataset based on real patient records from the CIUSSS de l'Estrie-CHUS in Sherbrooke, Canada.
+
+To protect patient privacy, the original data was mapped to synthetic patients using the AVATAR method. This approach creates a group of synthetic patients that share the same statistical properties as the original patients.
+
+You can find more details and download the dataset directly from its source: <https://zenodo.org/records/12954673>
+
+### Dataset Overview
+
+- It represents 123,646 synthetic patients.
+- There are 248,485 rows, each corresponding to a single hospital visit.
+- The raw data contains 248 columns. After excluding the first two and last two columns, we have **244 predictors** to train our models.
