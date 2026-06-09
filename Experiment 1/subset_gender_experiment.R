@@ -10,9 +10,11 @@ data_dt = fread("dataset.csv")
 dim(data_dt)
 names(data_dt)
 
-### Supp columns not used for prediction
+# Delete columns not used or relevant for prediction
+### 2nd columns : "visit_id" a unique number for all hospital visits
+### ncol(data_dt) -1 (the column before the last one) : "CSO" the Clinical Worker
 
-cols_supp <- c(1:2, (ncol(data_dt) - 1))
+cols_supp <- c(2, (ncol(data_dt) - 1))
 
 # Under-sampling to 1000-first rows only
 
@@ -26,27 +28,25 @@ if (length(colonnes_texte) > 0) {
   data_for_pred[, (colonnes_texte) := lapply(.SD, as.factor), .SDcols = colonnes_texte]
 }
 data_for_pred[, oym := as.factor(oym)]
-
+data_for_pred[, patient_id := as.character(patient_id)]
 
 # Subset Gender(M,F)
 
 #Implemented this function to not repeat 3 times the proportion calculi
 calculate_proportion <- function(data, group_col) {
-  data[, .(
+  print(data[, .(
     patients_count = .N, 
     proportion = round((.N / nrow(data)) * 100, 2)
-  ), by = group_col][order(-proportion)]
+  ), by = group_col][order(-proportion)])
 }
 
-calculate_proportion(data_for_pred, data_for_pred$gender)
+calculate_proportion(data_for_pred, "gender")
 
-data_gender_F <- data_for_pred[gender == 'F']
-
-calculate_proportion(data_gender_F, data_gender_F$oym)
-
-data_gender_M <- data_for_pred[gender == 'M']
-
-calculate_proportion(data_gender_M, data_gender_M$oym)
+for (g in c('F','M')) {
+  data_gender_filter = data_for_pred[gender == g]
+  assign(paste0("data_gender_", g),data_gender_filter)
+  calculate_proportion(data_gender_filter, "oym")
+}
 
 #Tasks definition
 
@@ -95,17 +95,17 @@ for(learner.i in seq_along(learners)){
 
 kfold_cv <- rsmp("cv", folds = 5)
 
-design <- benchmark_grid(
-  tasks = list(task_gender_F, task_gender_M),
+design_kfold <- benchmark_grid(
+  tasks = list(task_gender_F,task_gender_M),
   learners = learners,
   resamplings = kfold_cv
 )
 
 #Training
 
-print("Train Benchmark...")
+print("Train Benchmark KFOLD_CV...")
 
-bmr <- benchmark(design)
+bmr <- benchmark(design_kfold)
 
 #Evaluation
 
@@ -126,19 +126,73 @@ tab_avg_score<- tab_avg_score[order(task_id, -Mean_AUC)]
 
 print(tab_avg_score)
 
-#Graphic for AUC
+#Graphic for AUC and Classification Error
 
 library(ggplot2)
 
-tab_auc <- tab_avg_score[, .(task_id, learner_id, Mean_AUC)]
+library(animint2)
+scores[, let(percent_error=100*classif.ce)]
+ggplot()+
+  facet_grid(task_id ~ .)+
+  geom_point(aes(
+    percent_error, learner_id),
+    data=scores)+
+  scale_x_continuous(
+    breaks=seq(0,100,by=10),
+    limits=c(0,60))
 
-ggplot(tab_auc, aes(x = learner_id, y = Mean_AUC, fill = task_id)) +
-  geom_bar(stat = "identity", position = position_dodge()) +
-  scale_y_continuous(limits = c(0, 1)) +
+ggplot()+
+  facet_grid(task_id ~ .)+
+  geom_point(aes(
+    classif.auc, learner_id),
+    data=scores)
+
+
+# New Benchmarking SOAK strategy + grouping (patient_id)
+
+SOAK <- mlr3resampling::ResamplingSameOtherSizesCV$new()
+SOAK$param_set$values$folds <- 5
+
+task_gender = TaskClassif$new(
+  id = "Gender_task",
+  backend = data_for_pred,
+  target = "oym"
+)
+task_gender$col_roles$subset <- "gender"
+task_gender$set_col_roles("patient_id", roles = "group")
+
+SOAK$instantiate(task_gender)
+
+#Define new Benchmark
+
+design_soak <- benchmark_grid(
+  tasks = list(task_gender),
+  learners = learners,
+  resamplings = SOAK
+)
+
+#Training
+
+print("Train Benchmark SOAK...")
+
+bmr_soak <- benchmark(design_soak)
+
+#Evaluation
+
+score_dt <- bmr_soak$score(mlr3::msrs('classif.auc'))
+info_iterations <- SOAK$instance$iteration.dt
+score_to_plot <- merge(score_dt, info_iterations, by = "iteration")
+
+auc_graphic <- ggplot(score_to_plot, aes(x = classif.auc, y = train.subsets)) +
+  geom_point(shape = 1, size = 2.5) +
+  facet_grid(learner_id ~ test.subset) +
   labs(
-    title = "Performance AUC per Model",
-    x = "Algorithms",
-    y = "Score AUC",
-    fill = "Group"
+    title = "AUC Score",
+    x = "classif.auc",
+    y = "Train subsets"
   ) +
-  theme_minimal()
+  theme_bw()
+
+print(auc_graphic)
+
+
