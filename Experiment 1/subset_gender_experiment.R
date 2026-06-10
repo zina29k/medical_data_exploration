@@ -41,6 +41,7 @@ calculate_proportion <- function(data, group_col) {
 }
 
 calculate_proportion(data_for_pred, "gender")
+calculate_proportion(data_for_pred, "oym")
 
 for (g in c('F','M')) {
   data_gender_filter = data_for_pred[gender == g]
@@ -80,7 +81,7 @@ lrn_cv_glmnet$id <- "cv_glmnet"
 lrn_knn <- mlr3learners::LearnerClassifKKNN$new()
 lrn_knn$id <- "KNN"
 
-lrn_rf <- lrn("classif.randomForest", id = "RandomForest", ntree = 100)
+lrn_rf <- lrn("classif.randomForest", id = "RF", ntree = 100)
 
 learners <- list(
   lrn_featureless,
@@ -196,5 +197,3 @@ auc_graphic <- ggplot(score_to_plot, aes(x = classif.auc, y = train.subsets)) +
   theme_bw()
 
 print(auc_graphic)
-
-
