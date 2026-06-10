@@ -55,12 +55,14 @@ task_gender_F <- TaskClassif$new(
   backend = data_gender_F,
   target = "oym"
 )
+task_gender_F$set_col_roles("patient_id", roles = "name")
 
 task_gender_M <- TaskClassif$new(
   id = "Gender_M",
   backend = data_gender_M,
   target = "oym"
 )
+task_gender_M$set_col_roles("patient_id", roles = "name")
 
 # Learners
 
