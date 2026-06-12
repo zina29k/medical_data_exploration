@@ -66,7 +66,7 @@ lrn_knn <- mlr3learners::LearnerClassifKKNN$new()
 lrn_knn$id <- "KNN"
 
 lrn_rf <- mlr3learners::LearnerClassifRanger$new()
-lrn_knn$id <- "RF"
+lrn_rf$id <- "RF"
 
 learners <- list(
   lrn_featureless,
@@ -174,7 +174,7 @@ pval_obj = mlr3resampling::pvalue(score_obj)
 plot(pval_obj)
 
 visualize_graphic <- function(score_to_plot){
-  auc_graphic <- ggplot(score_to_plot, aes(x = classif.auc, y = train.subsets)) +
+    auc_graphic <- ggplot(score_to_plot, aes(x = classif.auc, y = train.subsets))+
     geom_point(shape = 1, size = 2.5) +
     facet_grid(learner_id ~ test.subset) +
     labs(
@@ -186,5 +186,7 @@ visualize_graphic <- function(score_to_plot){
   
   print(auc_graphic)
 }
+
+score_to_plot = score_obj
 
 visualize_graphic(score_to_plot)
