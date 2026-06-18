@@ -1,5 +1,6 @@
 library(mlr3)
 library(ggplot2)
+
 # Load data
 
 library(data.table)
@@ -17,10 +18,11 @@ cols_supp <- c(2, (ncol(data_dt) - 1))
 
 # Under-sampling to 1000-first rows only
 
-data_for_pred <- data_dt[1:1000, -..cols_supp]
+data_for_pred <- data_dt[, -..cols_supp]
+
+# --------------------------- Functions utils ---------------------------
 
 # Factor supported by mlr3 tasks
-
 convert_for_mlr3 <- function(dt) {
   colonnes_texte <- names(dt)[sapply(dt, is.character)]
   if (length(colonnes_texte) > 0) {
@@ -30,18 +32,54 @@ convert_for_mlr3 <- function(dt) {
   dt[, patient_id := as.character(patient_id)]
   return(dt)
 }
-
 data_for_pred <- convert_for_mlr3(data_for_pred)
 
-# Subset Gender(M,F)
-
-#Implemented this function to not repeat 3 times the proportion calculi
+#Implemented this function to not repeat the proportion calculi
 calculate_proportion <- function(data, group_col) {
   print(data[, .(
     patients_count = .N, 
     proportion = round((.N / nrow(data)) * 100, 2)
   ), by = group_col][order(-proportion)])
 }
+
+#Submit Jobs to cluster nodes
+submit_job_array <- function(jobs_dt, minutes=1, gigabytes=1){
+  jobs_dt$chunk <- 1
+  batchtools::submitJobs(jobs_dt, resources=list(
+    walltime = minutes*60,#seconds
+    memory = gigabytes*1000,#megabytes per cpu
+    ncpus=1,  #>1 for multicore/parallel jobs.
+    ntasks=1, #>1 for MPI jobs.
+    chunks.as.arrayjobs=TRUE))
+}
+# Run the benchmark and get the results from the cluster
+run_cluster_benchmark <- function(design, reg_name, minutes = 60, gigabytes = 16) {
+  
+  reg_dir <- paste0("~/scratch/project_test/", reg_name)
+  batchtools::setDefaultRegistry(NULL)
+  unlink(reg_dir, recursive = TRUE)
+  
+  reg <- batchtools::makeExperimentRegistry(reg_dir)
+  
+  mlr3batchmark::batchmark(design, reg = reg) 
+  
+  not.done <- batchtools::getJobTable(reg = reg)[is.na(done)]
+  submit_job_array(not.done, minutes = minutes, gigabytes = gigabytes)
+  
+  batchtools::waitForJobs(reg = reg)
+  
+  erreurs <- batchtools::findErrors(reg = reg)
+  expires <- batchtools::findExpired(reg = reg)
+  if(nrow(erreurs) > 0 | nrow(expires) > 0) {
+    warning(paste("!!! Jobs expired or errored in the register :", reg_name))
+  }
+  
+  bmr_final <- mlr3batchmark::reduceResultsBatchmark(store_backends = FALSE, reg = reg)
+  
+  return(bmr_final)
+}
+
+# Subset Gender(M,F)
 
 calculate_proportion(data_for_pred, "gender")
 calculate_proportion(data_for_pred, "oym")
@@ -94,16 +132,22 @@ design_kfold <- benchmark_grid(
 )
 
 #Training
+library(batchtools)
+library(mlr3batchmark)
 
-print("Train Benchmark KFOLD_CV...")
+train_kfold_cluster <- function(bmr_design) {
+  print("Train Benchmark KFOLD_CV...")
+  bmr_final <- run_cluster_benchmark(bmr_design, "kfold")
+  return(bmr_final)
+}
 
-bmr <- benchmark(design_kfold)
+# Uncomment this to train the benckmark on cluster
+bmr <- train_kfold_cluster(design_kfold)
 
-score_ob = mlr3resampling::score(bmr, mlr3::msrs('classif.auc'))
-plot(score_ob)
+# Uncomment this to train the benckmark on pc/1-node
+#bmr <- bmr <- benchmark(design_kfold)
 
 #Evaluation
-
 metrics_list <- c("classif.auc", "classif.ce", "classif.tpr", "classif.fpr",
                   "classif.tnr", "classif.fnr")
 
@@ -111,11 +155,10 @@ test_measure <- mlr3::msrs(metrics_list)
 
 scores <- bmr$score(test_measure)
 tab_avg_score <- dcast(scores, 
-  task_id + learner_id ~ ., 
-  list(mean, sd),
-  value.var = metrics_list
+                       task_id + learner_id ~ ., 
+                       list(mean, sd),
+                       value.var = metrics_list
 )
-
 tab_avg_score <- tab_avg_score[order(task_id, -classif.auc_mean)]
 
 print(tab_avg_score)
@@ -140,42 +183,33 @@ ggplot()+
 
 # --------------------------- Functions ---------------------------
 
-# Execute the SOAK pipeline
-run_soak_experiment <- function(data, subset_col, group_col = "patient_id", target_col = "oym", learners_list, folds = 5) {
+run_soak_experiment <- function(data, subset_col, group_col = "patient_id", target_col = "oym", learners_list, folds = 5, reg_name) {
   
-  #Create the task (Age/Gender)
   task_id <- paste0("Task_", subset_col)
-  task <- TaskClassif$new(
-    id = task_id,
-    backend = data,
-    target = target_col
-  )
-  
+  task <- TaskClassif$new(id = task_id, backend = data, target = target_col)
   task$col_roles$subset <- subset_col
-  
-  #Patient_id group : keep the bloc for each patient's visits
   task$set_col_roles(group_col, roles = "group")
   
-  #Same Other All strategy
   SOAK <- mlr3resampling::ResamplingSameOtherSizesCV$new()
   SOAK$param_set$values$folds <- folds
   SOAK$instantiate(task)
   
-  #Create the Benchmark
   design_soak <- benchmark_grid(
     tasks = list(task),
     learners = learners_list,
     resamplings = SOAK
   )
   
-  #Training
-  print(paste("Train Benchmark SOAK for ", subset_col, "..."))
-  bmr_soak <- benchmark(design_soak)
+  # Train the benckmark on cluster
+  bmr_soak <- run_cluster_benchmark(design_soak, reg_name)
+  
+  # Train the benckmark on pc/1-node
+  #bmr_soak <- benchmark(design_soak)
   
   score_obj <- mlr3resampling::score(bmr_soak, mlr3::msrs("classif.auc"))
   pval_obj  <- mlr3resampling::pvalue(score_obj)
   
-  return(list(score = score_obj, pvalue = pval_obj))
+  return(list(score = score_obj, pvalue = pval_obj, bmr = bmr_soak))
 }
 
 # Visualize AUC of the SOAK results
@@ -194,29 +228,21 @@ visualize_graphic <- function(score_to_plot, experience_title) {
 }
 
 # --------------------------- Experience 1: Cross Gender ---------------------------
-
-calculate_proportion(data_for_pred, "gender")
-
 # Run Gender SOAK
 res_gender <- run_soak_experiment(
   data = data_for_pred, 
   subset_col = "gender", 
-  learners_list = learners
+  learners_list = learners,
+  reg_name = "jobs_soak_gender"
 )
 
-# Plot Gender Results
-plot(res_gender$score)
-plot(res_gender$pvalue)
 visualize_graphic(res_gender$score, "Cross Gender")
 
+plot(res_gender$pvalue)
 
 # --------------------------- Experience 2: Cross Age ------------------------------
-
-# Divide in 2 age range to have a somewhat balanced prop
 set.seed(42)
-
-data_age <- data_dt[sample(.N, 1000), -..cols_supp]
-
+data_age <- data_dt[sample(.N), -..cols_supp]
 data_age <- convert_for_mlr3(data_age)
 
 data_age[, age_interval := cut(age_original, 
@@ -224,16 +250,14 @@ data_age[, age_interval := cut(age_original,
                                labels = c("age < 65", "65 <= age"),
                                include.lowest = TRUE)]
 
-calculate_proportion(data_age, "age_interval")
-
 # Run age SOAK
 res_age <- run_soak_experiment(
   data = data_age, 
   subset_col = "age_interval", 
-  learners_list = learners
+  learners_list = learners,
+  reg_name = "jobs_soak_age"
 )
 
-# Plot age results
-plot(res_age$score)
-plot(res_age$pvalue)
 visualize_graphic(res_age$score, "Cross Age")
+
+plot(res_age$pvalue)
