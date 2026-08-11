@@ -23,11 +23,11 @@ We start with simple cross-validation, then move to grouped cross-validation usi
 ![Baseline AUCs](Experiment_1/cluster_results/auc_kfold_all.png)
 
 | AUC (Age) | p-value (Age) |
-|:----------------------------------:|:----------------------------------:|
+|:--:|:--:|
 | ![AUC Age](Experiment_1/cluster_results/auc_soak_age_all.png) | ![P-value Age](Experiment_1/cluster_results/pval_soak_age_all.png){width="378"} |
 
 | AUC (Gender) | p-value (Gender) |
-|:----------------------------------:|:----------------------------------:|
+|:--:|:--:|
 | ![AUC Age](Experiment_1/cluster_results/auc_soak_age_all.png) | ![P-value Age](Experiment_1/cluster_results/pval_soak_age_all.png) |
 
 **Key Insights:**
@@ -61,4 +61,3 @@ We start with simple cross-validation, then move to grouped cross-validation usi
 ![RF Permutation Importance](Experiment_3/cluster_results/top_rf.png) ![Glmnet Log-coefficients](Experiment_3/cluster_results/top_glmnet.png)
 
 **Key Insights:**
-
