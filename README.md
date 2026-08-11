@@ -23,11 +23,11 @@ We start with simple cross-validation, then move to grouped cross-validation usi
 ![Baseline AUCs](Experiment_1/cluster_results/auc_kfold_all.png)
 
 | AUC (Age) | p-value (Age) |
-|:--:|:--:|
+|:----------------------------------:|:----------------------------------:|
 | ![AUC Age](Experiment_1/cluster_results/auc_soak_age_all.png) | ![P-value Age](Experiment_1/cluster_results/pval_soak_age_all.png){width="378"} |
 
 | AUC (Gender) | p-value (Gender) |
-|:--:|:--:|
+|:----------------------------------:|:----------------------------------:|
 | ![AUC Age](Experiment_1/cluster_results/auc_soak_age_all.png) | ![P-value Age](Experiment_1/cluster_results/pval_soak_age_all.png) |
 
 **Key Insights:**
@@ -61,3 +61,7 @@ We start with simple cross-validation, then move to grouped cross-validation usi
 ![RF Permutation Importance](Experiment_3/cluster_results/top_rf.png) ![Glmnet Log-coefficients](Experiment_3/cluster_results/top_glmnet.png)
 
 **Key Insights:**
+
+- Both of our machine learning models and the original paper perfectly agree on the three most critical risk factors: `age`, `service_group`, and `adm_urgence` (urgent admission).
+- The importance rankings of specific comorbidities differ between our models and the paper.
+- **Hypothesis:** This divergence is likely due to methodological differences. The paper uses univariate statistical tests (Welch's t-test and Pearson's chi-squared), which assess variables in isolation. In contrast, Random Forest (permutation) and `glmnet` (multivariate coefficients) evaluate the predictive power of variables *in the presence of all others*. Also, because big factors like age, service, and urgency do most of the heavy lifting, the smaller variables (like comorbidities) shift around in importance depending on how the specific model works.
