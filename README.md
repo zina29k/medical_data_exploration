@@ -39,7 +39,7 @@ We start with simple cross-validation, then move to grouped cross-validation usi
 
 ## Phase 3: Hyperparameter Tuning & Neural Networks
 
-[subset_tuned_experiment.R](Experiment_1/subset_tuned_experiment.R) attempts to push performance further by introducing a tuning grid search for KNN and implementing two neural network architectures using `torch`: a linear model and a multi-layer perceptron (1 hidden layer, 50 neurons). The networks were trained over 200 epochs with early stopping to capture learning dynamics.
+[subset_tuned_experiment.R](Experiment_2/subset_tuned_experiment.R) attempts to push performance further by introducing a tuning grid search for KNN and implementing two neural network architectures using `torch`: a linear model and a multi-layer perceptron (1 hidden layer, 50 neurons). The networks were trained over 200 epochs with early stopping to capture learning dynamics.
 
 **Outputs:** ![p-values and Mean AUCs (Gender)](Experiment_2/cluster_results/new_gender_pval.png) p-values and Mean AUCs (Gender)
 
