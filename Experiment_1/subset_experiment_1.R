@@ -7,8 +7,6 @@ library(data.table)
 
 data_dt = fread("dataset.csv")
 
-
-
 dim(data_dt)
 names(data_dt)
 
@@ -264,19 +262,4 @@ res_age <- run_soak_experiment(
 visualize_graphic(res_age$score, "Cross Age")
 
 plot(res_age$pvalue)
-
-# Experience 3: Questions on the efficiency of the longitudinal model (patient with visit = 1 prop = 58)
-
-stat_visits <- data_dt[, .(nb_visits = .N), by = patient_id]
- 
-print(stat_visits[, .(nb_patients = .N), by = nb_visits][order(nb_visits)])
-
-stat_visits[, class_visit := cut(nb_visits, 
-                                        breaks = c(0, 1, 3, Inf), 
-                                        labels = c("1 visit", "2-3 visits", "4+ visits"))]
-calculate_proportion(stat_visits,"class_visit")
-
-# Cold-Start problem : most of the patient only go for the first time in the hospital ->  no Longitudinal data yet
-# Test the efficiency of Longitudinal model (LSTM) compared to a static model on a subset with visit = 1 only
-# See if they perform the same -> Is it necessary to have a heavy modeling in that case
 
