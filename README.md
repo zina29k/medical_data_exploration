@@ -3,7 +3,7 @@
 **Presentations**
 
 - [Slides: Phase 1 & 2 - Baseline CV and Robustness](https://www.canva.com/design/DAHNVsic6PQ/cBcqfPzgyDizGb628E_sVw/edit)
-- [Slides: Phase 3 - Deep Learning & Tuning Exploration](https://www.canva.com/design/DAHP7hqw0Gc/_nJXpF3bNHlC1L4ZbXy3bQ/edit)
+- [Slides: Phase 3 - Hyperparameter Tuning & Neural Networks](https://www.canva.com/design/DAHP7hqw0Gc/_nJXpF3bNHlC1L4ZbXy3bQ/edit)
 - [Slides: Phase 4 - Model Interpretability & Feature Importance](https://www.canva.com/design/DAHR3usZrJU/PE7-ch_eTJ1bKnHoRW9j1w/edit?ui=eyJFIjp7Im0iOnRydWUsIkE_IjoibiJ9LCJLIjp7fX0)
 
 ### Abstract
